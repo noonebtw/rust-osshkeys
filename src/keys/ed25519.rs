@@ -96,6 +96,24 @@ impl Ed25519KeyPair {
         })
     }
 
+    /// Generate Ed25519 key pair from 32 byte (256 bit) seed
+    ///
+    /// The bytes parameter should has to be 32 bytes long.
+    pub fn from_seed(bytes: &[u8]) -> OsshResult<Self> {
+        if bytes.len() != 32 {
+            return Err(Error::from_kind(ErrorKind::InvalidKeySize));
+        }
+
+        let secret = DalekSecretKey::from_bytes(bytes)?;
+
+        Ok(Ed25519KeyPair {
+            key: Box::new(DalekKeypair {
+                public: (&secret).into(),
+                secret,
+            }),
+        })
+    }
+
     pub(crate) fn from_bytes(pk: &[u8], sk: &[u8]) -> OsshResult<Self> {
         if pk.len() != PUBLIC_KEY_LENGTH {
             return Err(ErrorKind::InvalidKeySize.into());
